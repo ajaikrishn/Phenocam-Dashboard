@@ -22,14 +22,14 @@ def index():
 @app.route('/gallery')
 def gallery():
     try:
-        print(f"📂 Checking folder: {image_folder}")
+        print(f"Checking folder: {image_folder}")
         
         if not os.path.exists(image_folder):
-            print(f"❌ Folder does not exist: {image_folder}")
+            print(f"Folder does not exist: {image_folder}")
             return jsonify([])
         
         files = os.listdir(image_folder)
-        print(f"📁 Found {len(files)} files in folder")
+        print(f"Found {len(files)} files in folder")
         
         # Filter for image files
         images = [
@@ -40,25 +40,47 @@ def gallery():
         # Sort by filename (which includes date if format is consistent)
         images.sort(reverse=True)
         
-        print(f"✅ Returning {len(images)} images")
+        print(f" Returning {len(images)} images")
         for img in images[:5]:  # Print first 5 for debugging
             print(f"  - {img}")
         
         return jsonify(images)
     except Exception as e:
-        print(f"❌ Error in /gallery endpoint: {e}")
+        print(f" Error in /gallery endpoint: {e}")
         import traceback
         traceback.print_exc()
         return jsonify([])
 
+
+@app.route('/latest')
+@app.route('/api/latest')
+def latest():
+    """Return JSON for the latest image (path and filename)."""
+    try:
+        if not os.path.exists(image_folder):
+            return jsonify({})
+
+        files = [f for f in os.listdir(image_folder) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))]
+        if not files:
+            return jsonify({})
+
+        # Assume filenames sort lexicographically by datetime when formatted consistently
+        files.sort(reverse=True)
+        latest_file = files[0]
+        latest_path = f'/Phenocamdata/{latest_file}'
+        return jsonify({'path': latest_path, 'filename': latest_file})
+    except Exception as e:
+        print(f" Error in /latest endpoint: {e}")
+        return jsonify({})
+
 # Serve images from the Phenocamdata folder
 @app.route('/Phenocamdata/<path:filename>')
 def serve_image(filename):
-    print(f"📷 Serving image: {filename}")
+    print(f"Serving image: {filename}")
     return send_from_directory(image_folder, filename)
 
 if __name__ == '__main__':
-    print(f"📂 Image folder: {image_folder}")
-    print(f"📷 Starting Flask server on http://localhost:5001")
-    print(f"🌐 Access dashboard at: http://localhost:5001")
+    print(f" Image folder: {image_folder}")
+    print(f"Starting Flask server on http://localhost:5001")
+    print(f"Access dashboard at: http://localhost:5001")
     app.run(debug=True, port=5001, host='0.0.0.0')

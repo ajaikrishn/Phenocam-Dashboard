@@ -121,6 +121,68 @@ async function fetchLatestImage() {
   }
 }
 
+// Poll the backend for the latest image and update the main card if changed
+async function pollLatestImage() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/latest`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data || !data.path) return;
+
+    const latestSrc = `${API_BASE_URL}${data.path}`;
+    const imgElement = document.getElementById('phenocam-img');
+    if (!imgElement) return;
+
+    // If the currently displayed image is different, update it
+    if (imgElement.src !== latestSrc) {
+      // Build a small image object similar to loadGalleryWithD3 items
+      const metadata = parseFilename(data.path);
+      const imgObj = {
+        filename: data.filename,
+        src: latestSrc,
+        datetime: metadata.datetime,
+        location: metadata.location
+      };
+      setLatestImage(imgObj);
+    }
+  } catch (err) {
+    console.error('❌ Error polling latest image:', err);
+  }
+}
+
+// Set the main "Latest Phenocam Image" card from a gallery image object
+function setLatestImage(imgObj) {
+  if (!imgObj) return;
+  try {
+    const imgElement = document.getElementById('phenocam-img');
+    const noImageElement = document.getElementById('no-image');
+    const imageInfo = document.querySelector('.image-info');
+
+    // imgObj.src is constructed as API_BASE_URL + path; convert to backend static URL if needed
+    let displaySrc = imgObj.src || '';
+    if (displaySrc.startsWith(API_BASE_URL)) {
+      // If backend serves images under a different root, remove the API_BASE_URL prefix
+      displaySrc = displaySrc.replace(API_BASE_URL, API_BASE_URL.replace(/:\/\/[\w.:-]+/, matched => matched.replace(/:5001$/, ':5001')));
+    }
+
+    if (imgElement) {
+      imgElement.src = displaySrc;
+      imgElement.style.display = 'block';
+    }
+    if (noImageElement) noImageElement.style.display = 'none';
+    if (imageInfo) imageInfo.style.display = 'block';
+
+    const dateEl = document.getElementById('image-date');
+    const stationEl = document.getElementById('image-station');
+    if (dateEl) dateEl.textContent = imgObj.datetime || imgObj.captured_at || '';
+    if (stationEl) stationEl.textContent = imgObj.location || imgObj.station || '';
+
+    console.log('✅ Main image updated from gallery:', imgObj.filename || imgObj.src);
+  } catch (err) {
+    console.error('❌ Error setting latest image:', err);
+  }
+}
+
 // ============================================
 // LOAD IMAGE GALLERY WITH D3.JS
 // ============================================
@@ -216,6 +278,8 @@ function loadGalleryWithD3() {
         .append('div')
         .attr('class', 'gallery-item')
         .on('click', function(event, d) {
+          // Set this image as the main Latest image and open modal
+          setLatestImage(d);
           openImageModal(d.src, d.datetime, d.location);
         });
 
@@ -246,6 +310,10 @@ function loadGalleryWithD3() {
         .html(d => `${d.datetime}<br>${d.location}`);
 
       console.log(`✅ D3 Gallery loaded with ${images.length} images`);
+      // Auto-select newest image (first after sorting)
+      if (images.length > 0) {
+        setLatestImage(images[0]);
+      }
     })
     .catch(error => {
       console.error('❌ D3 Error loading gallery:', error);
@@ -471,4 +539,11 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Load initial data
   loadAllData();
+  // Start polling latest image every 30s
+  try {
+    pollLatestImage();
+    setInterval(pollLatestImage, 30000);
+  } catch (e) {
+    console.warn('Polling not available:', e);
+  }
 });
