@@ -218,7 +218,6 @@ function parseFilename(filename) {
       date: date,
       time: time,
       datetime: `${date} ${time}`,
-      season: season,
       location: 'APU Position 01'
     };
   }
