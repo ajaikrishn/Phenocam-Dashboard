@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify, render_template, send_from_directory
+from flask import Flask, jsonify, render_template, send_from_directory,send_file
 from flask_cors import CORS
 
 # Absolute path to folder containing images
@@ -18,6 +18,9 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+
 
 @app.route('/gallery')
 def gallery():
@@ -72,6 +75,18 @@ def latest():
     except Exception as e:
         print(f" Error in /latest endpoint: {e}")
         return jsonify({})
+@app.route("/Plots/ndvi_plot.json")
+def ndvi():
+    return send_file("../Plots/ndvi_plot.json",
+                     mimetype="application/json")
+@app.route("/Plots/ndvi_plot.png")  
+def ndvi_png():
+    return send_file("../Plots/ndvi_plot.png",
+                     mimetype="image/png")
+
+    
+    
+
 
 # Serve images from the Phenocamdata folder
 @app.route('/Phenocamdata/<path:filename>')

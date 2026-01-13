@@ -11,71 +11,25 @@ const margin = {top: 20, right: 30, bottom: 50, left: 60};
 function showPage(pageName, event) {
   event.preventDefault();
   
-  // Hide all pages
   document.querySelectorAll('.page').forEach(page => {
     page.classList.remove('active');
   });
   
-  // Remove active class from all nav links
   document.querySelectorAll('.nav-link').forEach(link => {
     link.classList.remove('active');
   });
   
-  // Show selected page
   document.getElementById(pageName).classList.add('active');
-  
-  // Add active class to clicked link
   event.target.classList.add('active');
 
-  // Load gallery if switching to gallery page
   if (pageName === 'gallery') {
     loadGalleryWithD3();
   }
 }
 
 // ============================================
-// FETCH DATA FROM BACKEND
+// FETCH LATEST IMAGE
 // ============================================
-
-async function fetchLatestMetrics() {
-  try {
-    const response = await fetch(`${API_BASE_URL}/metrics/latest`);
-    const data = await response.json();
-    
-    // Update metrics display
-    document.getElementById('ndvi-value').textContent = data.ndvi ? data.ndvi.toFixed(3) : '0.000';
-    document.getElementById('brightness-value').textContent = data.brightness ? Math.round(data.brightness) : '0';
-    
-    console.log('✅ Metrics loaded:', data);
-  } catch (error) {
-    console.error('❌ Error fetching metrics:', error);
-  }
-}
-
-async function fetchTimeSeriesData() {
-  try {
-    const response = await fetch(`${API_BASE_URL}/metrics/timeseries`);
-    const data = await response.json();
-    
-    if (data.length === 0) {
-      document.getElementById('chart').innerHTML = '<div class="loading">📊 No data yet. Upload images to see trends!</div>';
-      return;
-    }
-    
-    // Convert to chart format
-    chartData = data.map(item => ({
-      date: new Date(item.date),
-      gcc: item.gcc,
-      ndvi: item.ndvi
-    }));
-    
-    updateChart();
-    console.log('✅ Time series loaded:', chartData.length, 'data points');
-  } catch (error) {
-    console.error('❌ Error fetching time series:', error);
-    document.getElementById('chart').innerHTML = '<div class="loading">❌ Error loading data. Make sure Flask backend is running!</div>';
-  }
-}
 
 async function fetchLatestImage() {
   try {
@@ -83,7 +37,6 @@ async function fetchLatestImage() {
     const imagePaths = await response.json();
     
     if (imagePaths && imagePaths.length > 0) {
-      // Sort to get the latest image (newest first)
       imagePaths.sort((a, b) => b.localeCompare(a));
       
       const latestPath = imagePaths[0];
@@ -91,16 +44,13 @@ async function fetchLatestImage() {
       const noImageElement = document.getElementById('no-image');
       const imageInfo = document.querySelector('.image-info');
       
-      // Parse filename to get metadata
       const metadata = parseFilename(latestPath);
       
-      // Show image
       imgElement.src = `${API_BASE_URL}${latestPath}`;
       imgElement.style.display = 'block';
       if (noImageElement) noImageElement.style.display = 'none';
       if (imageInfo) imageInfo.style.display = 'block';
       
-      // Update image info
       document.getElementById('image-date').textContent = metadata.datetime;
       document.getElementById('image-station').textContent = metadata.location;
       
@@ -121,7 +71,6 @@ async function fetchLatestImage() {
   }
 }
 
-// Poll the backend for the latest image and update the main card if changed
 async function pollLatestImage() {
   try {
     const res = await fetch(`${API_BASE_URL}/latest`);
@@ -133,9 +82,7 @@ async function pollLatestImage() {
     const imgElement = document.getElementById('phenocam-img');
     if (!imgElement) return;
 
-    // If the currently displayed image is different, update it
     if (imgElement.src !== latestSrc) {
-      // Build a small image object similar to loadGalleryWithD3 items
       const metadata = parseFilename(data.path);
       const imgObj = {
         filename: data.filename,
@@ -146,11 +93,10 @@ async function pollLatestImage() {
       setLatestImage(imgObj);
     }
   } catch (err) {
-    console.error('❌ Error polling latest image:', err);
+    console.error('Error polling latest image:', err);
   }
 }
 
-// Set the main "Latest Phenocam Image" card from a gallery image object
 function setLatestImage(imgObj) {
   if (!imgObj) return;
   try {
@@ -158,15 +104,8 @@ function setLatestImage(imgObj) {
     const noImageElement = document.getElementById('no-image');
     const imageInfo = document.querySelector('.image-info');
 
-    // imgObj.src is constructed as API_BASE_URL + path; convert to backend static URL if needed
-    let displaySrc = imgObj.src || '';
-    if (displaySrc.startsWith(API_BASE_URL)) {
-      // If backend serves images under a different root, remove the API_BASE_URL prefix
-      displaySrc = displaySrc.replace(API_BASE_URL, API_BASE_URL.replace(/:\/\/[\w.:-]+/, matched => matched.replace(/:5001$/, ':5001')));
-    }
-
     if (imgElement) {
-      imgElement.src = displaySrc;
+      imgElement.src = imgObj.src;
       imgElement.style.display = 'block';
     }
     if (noImageElement) noImageElement.style.display = 'none';
@@ -177,22 +116,18 @@ function setLatestImage(imgObj) {
     if (dateEl) dateEl.textContent = imgObj.datetime || imgObj.captured_at || '';
     if (stationEl) stationEl.textContent = imgObj.location || imgObj.station || '';
 
-    console.log('✅ Main image updated from gallery:', imgObj.filename || imgObj.src);
+    console.log('Main image updated from gallery:', imgObj.filename || imgObj.src);
   } catch (err) {
-    console.error('❌ Error setting latest image:', err);
+    console.error('Error setting latest image:', err);
   }
 }
 
 // ============================================
-// LOAD IMAGE GALLERY WITH D3.JS
+// PARSE FILENAME
 // ============================================
 
-// Parse filename to extract metadata
 function parseFilename(filename) {
-  // Extract just the filename from the full path
   const name = filename.split('/').pop();
-  
-  // Expected format: APU_pos_01_2025_07_28_13_38_47_color.jpg
   const parts = name.replace(/\.(jpg|jpeg|png|gif)$/i, '').split('_');
   
   if (parts.length >= 8) {
@@ -206,14 +141,6 @@ function parseFilename(filename) {
     const date = `${year}-${month}-${day}`;
     const time = `${hour}:${minute}:${second}`;
     
-    // Determine season based on month (Indian seasons)
-    const monthNum = parseInt(month);
-    let season = 'Unknown';
-    if (monthNum >= 3 && monthNum <= 5) season = 'Summer';      // March-May: Hot & Dry
-    else if (monthNum >= 6 && monthNum <= 9) season = 'Monsoon'; // June-Sept: Rainy
-    else if (monthNum >= 10 && monthNum <= 11) season = 'Autumn'; // Oct-Nov: Post-monsoon
-    else season = 'Winter';                                      // Dec-Feb: Cool & Dry
-    
     return {
       date: date,
       time: time,
@@ -226,30 +153,30 @@ function parseFilename(filename) {
     date: 'Unknown',
     time: 'Unknown',
     datetime: 'Unknown',
-    season: 'Unknown',
     location: 'APU Position 01'
   };
 }
 
+// ============================================
+// GALLERY
+// ============================================
+
 function loadGalleryWithD3() {
   const galleryGrid = d3.select('#gallery-grid');
   
-  // Show loading message
   galleryGrid.html('<div style="text-align: center; padding: 40px; color: #666;">⏳ Loading images with D3.js...</div>');
   
-  console.log('📡 D3 fetching gallery from:', `${API_BASE_URL}/gallery`);
+  console.log('D3 fetching gallery from:', `${API_BASE_URL}/gallery`);
   
-  // Use D3 to fetch JSON data
   d3.json(`${API_BASE_URL}/gallery`)
     .then(imagePaths => {
-      console.log('✅ D3 received images:', imagePaths);
+      console.log('D3 received images:', imagePaths);
       
       if (!imagePaths || imagePaths.length === 0) {
-        galleryGrid.html('<div style="text-align: center; padding: 40px; color: #666;">📷 No images found in the Phenocam folder.</div>');
+        galleryGrid.html('<div style="text-align: center; padding: 40px; color: #666;">No images found in the Phenocam folder.</div>');
         return;
       }
 
-      // Parse all images and create data array
       const images = imagePaths.map((path, index) => {
         const metadata = parseFilename(path);
         return {
@@ -260,16 +187,13 @@ function loadGalleryWithD3() {
         };
       });
 
-      // Sort images by date (newest first)
       images.sort((a, b) => {
         if (a.datetime === 'Unknown' || b.datetime === 'Unknown') return 0;
         return new Date(b.datetime) - new Date(a.datetime);
       });
 
-      // Clear loading message
       galleryGrid.html('');
 
-      // Create gallery items using D3
       const galleryItems = galleryGrid
         .selectAll('.gallery-item')
         .data(images)
@@ -277,12 +201,10 @@ function loadGalleryWithD3() {
         .append('div')
         .attr('class', 'gallery-item')
         .on('click', function(event, d) {
-          // Set this image as the main Latest image and open modal
           setLatestImage(d);
           openImageModal(d.src, d.datetime, d.location);
         });
 
-      // Add images
       galleryItems
         .append('img')
         .attr('src', d => d.src)
@@ -291,34 +213,31 @@ function loadGalleryWithD3() {
           d3.select(this).attr('src', 'https://via.placeholder.com/250x200/4CAF50/ffffff?text=Image+Not+Found');
         });
 
-      // Add info container
       const infoDiv = galleryItems
         .append('div')
         .attr('class', 'gallery-item-info');
 
-      // Add season title
       infoDiv
         .append('h4')
-        .text(d => `${d.season} View`);
+        .text(d => `View`);
 
-      // Add metadata
       infoDiv
         .append('p')
         .style('font-size', '0.9em')
         .style('color', '#666')
         .html(d => `${d.datetime}<br>${d.location}`);
 
-      console.log(`✅ D3 Gallery loaded with ${images.length} images`);
-      // Auto-select newest image (first after sorting)
+      console.log(`D3 Gallery loaded with ${images.length} images`);
+      
       if (images.length > 0) {
         setLatestImage(images[0]);
       }
     })
     .catch(error => {
-      console.error('❌ D3 Error loading gallery:', error);
+      console.error('D3 Error loading gallery:', error);
       galleryGrid.html(`
         <div style="text-align: center; padding: 40px; color: #d32f2f;">
-          <p>❌ Error loading images from server</p>
+          <p>Error loading images from server</p>
           <p style="font-size: 0.9em; margin-top: 10px;">Make sure Flask backend is running on port 5001</p>
           <p style="font-size: 0.8em; color: #666; margin-top: 10px;">Error: ${error.message}</p>
         </div>
@@ -331,7 +250,6 @@ function loadGalleryWithD3() {
 // ============================================
 
 function openImageModal(src, datetime, location) {
-  // Create modal if it doesn't exist
   let modal = document.getElementById('imageModal');
   if (!modal) {
     modal = document.createElement('div');
@@ -348,39 +266,133 @@ function openImageModal(src, datetime, location) {
       </div>
     `;
     document.body.appendChild(modal);
+    
+    modal.addEventListener('click', function(event) {
+      if (event.target === modal) {
+        closeImageModal();
+      }
+    });
   }
   
-  // Set modal content
   document.getElementById('modalImage').src = src;
-  document.getElementById('modalDateTime').textContent = `Captured: ${datetime}`;
-  document.getElementById('modalLocation').textContent = `Location: ${location}`;
+  document.getElementById('modalDateTime').textContent = `📅 Captured: ${datetime || 'Unknown'}`;
+  document.getElementById('modalLocation').textContent = `📍 Location: ${location || 'Unknown'}`;
   
-  // Show modal
   modal.style.display = 'block';
+  document.body.classList.add('modal-open');
+  
+  console.log('✅ Modal opened for image:', src);
 }
 
 function closeImageModal() {
   const modal = document.getElementById('imageModal');
   if (modal) {
     modal.style.display = 'none';
+    document.body.classList.remove('modal-open');
+    console.log('✅ Modal closed');
   }
 }
 
-// Close modal when clicking outside
+document.addEventListener('keydown', function(event) {
+  if (event.key === 'Escape') {
+    closeImageModal();
+  }
+});
+
 window.onclick = function(event) {
   const modal = document.getElementById('imageModal');
   if (event.target == modal) {
-    modal.style.display = 'none';
+    closeImageModal();
   }
+};
+
+// ============================================
+// LOAD NDVI DATA - SIMPLIFIED
+// ============================================
+
+function loadNDVIData() {
+  console.log('📊 Loading NDVI plot data...');
+
+  const parseDate = d3.timeParse("%Y_%m_%d");
+
+  d3.json('/Plots/ndvi_plot.json')
+    .then(data => {
+      console.log('✅ Raw NDVI data loaded:', data);
+
+      // Validate structure
+      if (!data.x || !data.y || data.x.length !== data.y.length) {
+        throw new Error("Invalid NDVI JSON structure (x/y mismatch)");
+      }
+
+      // Map JSON → chartData
+      chartData = data.x.map((d, i) => {
+        const parsedDate = parseDate(d);
+
+        if (!parsedDate || isNaN(data.y[i])) return null;
+
+        return {
+          date: parsedDate,
+          ndvi: data.y[i]
+        };
+      }).filter(d => d !== null);
+
+      // Sort chronologically (important for time series)
+      chartData.sort((a, b) => a.date - b.date);
+
+      console.log(`✅ Loaded ${chartData.length} NDVI points`);
+      console.log('📊 First:', chartData[0]);
+      console.log('📊 Last:', chartData[chartData.length - 1]);
+
+      if (chartData.length === 0) {
+        document.getElementById('chart').innerHTML =
+          '<div class="loading">📊 No valid NDVI data found</div>';
+        return;
+      }
+
+      // Update visuals
+      updateChart();
+      updateMetricsFromData();
+    })
+    .catch(error => {
+      console.error('❌ NDVI load error:', error);
+
+      document.getElementById('chart').innerHTML = `
+        <div class="loading" style="color:#e53935;">
+          ❌ Failed to load NDVI plot data<br>
+          <span style="font-size:0.9em">${error.message}</span>
+        </div>
+      `;
+    });
+}
+
+function load_ndviPng(){
+  d3.image('./Plots/ndvi_plot.png')
+
+}
+// ============================================
+// UPDATE METRICS
+// ============================================
+
+function updateMetricsFromData() {
+  if (chartData.length === 0) return;
+  
+  const latest = chartData[chartData.length - 1];
+  document.getElementById('ndvi-value').textContent = latest.ndvi.toFixed(3);
+  
+  const avgNDVI = chartData.reduce((sum, d) => sum + d.ndvi, 0) / chartData.length;
+  const estimatedBrightness = Math.round(127 + (avgNDVI * 100));
+  document.getElementById('brightness-value').textContent = Math.max(0, Math.min(255, estimatedBrightness));
+  
+  console.log(`✅ Metrics updated - Latest NDVI: ${latest.ndvi.toFixed(3)}, Avg NDVI: ${avgNDVI.toFixed(3)}`);
 }
 
 // ============================================
-// CHART FUNCTIONS
+// UPDATE CHART
 // ============================================
 
 function updateChart() {
   if (chartData.length === 0) {
-    document.getElementById('chart').innerHTML = '<div class="loading">📊 Loading data from backend...</div>';
+    document.getElementById('chart').innerHTML = '<div class="loading">⏳ Loading NDVI data...</div>';
     return;
   }
 
@@ -401,11 +413,51 @@ function updateChart() {
     .domain(d3.extent(chartData, d => d.date))
     .range([0, width]);
 
+  const yMin = d3.min(chartData, d => d.ndvi || 0);
+  const yMax = d3.max(chartData, d => d.ndvi || 0);
+  const yPadding = (yMax - yMin) * 0.1 || 0.1;
+
   const y = d3.scaleLinear()
-    .domain([0, d3.max(chartData, d => Math.max(d.gcc || 0, d.ndvi || 0)) * 1.1])
+    .domain([yMin - yPadding, yMax + yPadding])
     .range([height, 0]);
 
-  // NDVI Line
+  const gradient = svg.append('defs')
+    .append('linearGradient')
+    .attr('id', 'line-gradient')
+    .attr('gradientUnits', 'userSpaceOnUse')
+    .attr('x1', 0)
+    .attr('x2', width)
+    .attr('y1', 0)
+    .attr('y2', 0);
+
+  gradient.append('stop')
+    .attr('offset', '0%')
+    .attr('stop-color', '#667eea');
+
+  gradient.append('stop')
+    .attr('offset', '100%')
+    .attr('stop-color', '#764ba2');
+
+  const area = d3.area()
+    .x(d => x(d.date))
+    .y0(height)
+    .y1(d => y(d.ndvi))
+    .curve(d3.curveMonotoneX);
+
+  svg.append('path')
+    .datum(chartData)
+    .attr('fill', 'url(#line-gradient)')
+    .attr('fill-opacity', 0.15)
+    .attr('d', area);
+
+  svg.append('g')
+    .attr('class', 'grid')
+    .attr('opacity', 0.1)
+    .call(d3.axisLeft(y)
+      .tickSize(-width)
+      .tickFormat('')
+    );
+
   const ndviLine = d3.line()
     .x(d => x(d.date))
     .y(d => y(d.ndvi))
@@ -414,28 +466,69 @@ function updateChart() {
   svg.append('path')
     .datum(chartData)
     .attr('fill', 'none')
-    .attr('stroke', '#667eea')
+    .attr('stroke', 'url(#line-gradient)')
     .attr('stroke-width', 3)
     .attr('d', ndviLine);
 
-  // Axes
+  svg.selectAll('.dot')
+    .data(chartData)
+    .enter()
+    .append('circle')
+    .attr('class', 'dot')
+    .attr('cx', d => x(d.date))
+    .attr('cy', d => y(d.ndvi))
+    .attr('r', 4)
+    .attr('fill', '#667eea')
+    .attr('stroke', 'white')
+    .attr('stroke-width', 2)
+    .style('cursor', 'pointer')
+    .on('mouseover', function(event, d) {
+      d3.select(this)
+        .transition()
+        .duration(200)
+        .attr('r', 6);
+      
+      d3.select('body')
+        .append('div')
+        .attr('class', 'chart-tooltip')
+        .html(`
+          <strong>Date:</strong> ${d.date.toLocaleDateString()}<br>
+          <strong>NDVI:</strong> ${d.ndvi.toFixed(4)}
+        `)
+        .style('left', (event.pageX + 10) + 'px')
+        .style('top', (event.pageY - 30) + 'px');
+    })
+    .on('mouseout', function() {
+      d3.select(this)
+        .transition()
+        .duration(200)
+        .attr('r', 4);
+      
+      d3.selectAll('.chart-tooltip').remove();
+    });
+
   svg.append('g')
+    .attr('class', 'axis')
     .attr('transform', `translate(0,${height})`)
     .call(d3.axisBottom(x))
     .selectAll('text')
-    .style('font-size', '12px');
+    .style('font-size', '12px')
+    .attr('transform', 'rotate(-45)')
+    .style('text-anchor', 'end');
 
   svg.append('g')
-    .call(d3.axisLeft(y))
+    .attr('class', 'axis')
+    .call(d3.axisLeft(y).ticks(8))
     .selectAll('text')
     .style('font-size', '12px');
 
-  // Labels
   svg.append('text')
     .attr('x', width / 2)
-    .attr('y', height + 40)
+    .attr('y', height + 50)
     .attr('text-anchor', 'middle')
     .style('font-size', '14px')
+    .style('font-weight', '600')
+    .style('fill', '#555')
     .text('Date');
 
   svg.append('text')
@@ -444,105 +537,28 @@ function updateChart() {
     .attr('y', -45)
     .attr('text-anchor', 'middle')
     .style('font-size', '14px')
-    .text('NDVI');
+    .style('font-weight', '600')
+    .style('fill', '#555')
+    .text('NDVI (Normalized Difference Vegetation Index)');
 
-  console.log('✅ Chart rendered with', chartData.length, 'points');
+  console.log('✅ Chart rendered with', chartData.length, 'data points');
 }
 
 // ============================================
-// GENERATE SAMPLE DATA (For Testing)
+// INITIALIZATION
 // ============================================
 
-function generateSampleData() {
-  const startDate = new Date('2025-01-01');
-  chartData = [];
-  
-  for (let i = 0; i < 200; i++) {
-    const date = new Date(startDate);
-    date.setDate(date.getDate() + i);
-    
-    const baseValue = 0.35;
-    const seasonal = 0.15 * Math.sin((i / 200) * Math.PI * 2);
-    const noise = (Math.random() - 0.5) * 0.02;
-    
-    chartData.push({
-      date: date,
-      gcc: baseValue + seasonal + noise,
-      ndvi: (baseValue + seasonal + noise) * 1.5
-    });
-  }
-  
-  updateChart();
-  updateSampleMetrics();
-  console.log('✅ Sample data generated');
-}
-
-function updateSampleMetrics() {
-  if (chartData.length === 0) return;
-  
-  const latest = chartData[chartData.length - 1];
-  document.getElementById('ndvi-value').textContent = latest.ndvi.toFixed(3);
-  document.getElementById('brightness-value').textContent = Math.floor(100 + Math.random() * 100);
-}
-
-// ============================================
-// LOAD ALL DATA FROM BACKEND
-// ============================================
-
-async function loadAllData() {
-  console.log('📡 Loading data from Flask backend at:', API_BASE_URL);
-  document.getElementById('chart').innerHTML = '<div class="loading">⏳ Loading from backend...</div>';
-  
-  try {
-    // Try to fetch metrics, but don't fail if endpoints don't exist
-    try {
-      await fetchLatestMetrics();
-    } catch (e) {
-      console.log('ℹ️ Metrics endpoint not available');
-    }
-    
-    try {
-      await fetchTimeSeriesData();
-    } catch (e) {
-      console.log('ℹ️ Time series endpoint not available, generating sample data');
-      generateSampleData();
-    }
-    
-    try {
-      await fetchLatestImage();
-    } catch (e) {
-      console.log('ℹ️ Images endpoint not available');
-    }
-    
-    console.log('✅ Data loading complete!');
-  } catch (error) {
-    console.error('❌ Error loading data:', error);
-    generateSampleData(); // Fallback to sample data
-  }
-}
-
-// ============================================
-// EVENT LISTENERS
-// ============================================
-
-window.addEventListener('resize', () => {
-  if (chartData.length > 0 && document.getElementById('dashboard').classList.contains('active')) {
-    updateChart();
-  }
-});
-
-// Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
   console.log('🌿 Phenocam Dashboard Initialized');
-  console.log('🔌 Backend URL:', API_BASE_URL);
+  console.log('Backend URL:', API_BASE_URL);
   
-  // Load initial data
-  loadAllData();
-  // Start polling latest image every 30s
-  try {
-    pollLatestImage();
-    setInterval(pollLatestImage, 30000);
-  } catch (e) {
-    console.warn('Polling not available:', e);
-  }
+  // Load NDVI data
+  loadNDVIData();
+  
+  // Load latest image
+  fetchLatestImage();
+  
+  // Poll for latest image every 30s
+  pollLatestImage();
+  setInterval(pollLatestImage, 30000);
 });
