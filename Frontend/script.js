@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = 'http://localhost:5001';
+const API_BASE_URL = 'http://localhost:5002';
 
 let chartData = [];
 const margin = {top: 20, right: 30, bottom: 50, left: 60};
@@ -238,7 +238,7 @@ function loadGalleryWithD3() {
       galleryGrid.html(`
         <div style="text-align: center; padding: 40px; color: #d32f2f;">
           <p>Error loading images from server</p>
-          <p style="font-size: 0.9em; margin-top: 10px;">Make sure Flask backend is running on port 5001</p>
+          <p style="font-size: 0.9em; margin-top: 10px;">Make sure Flask backend is running on port 5002</p>
           <p style="font-size: 0.8em; color: #666; margin-top: 10px;">Error: ${error.message}</p>
         </div>
       `);
@@ -543,7 +543,12 @@ function updateChart() {
 
   console.log('✅ Chart rendered with', chartData.length, 'data points');
 }
-
+// ============================================
+//Export chart data as CSV
+// ============================================
+function exportChartData() {
+    window.location.href = "/download-csv";
+}F
 // ============================================
 // INITIALIZATION
 // ============================================

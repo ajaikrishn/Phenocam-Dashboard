@@ -21,6 +21,10 @@ def index():
 
 
 
+@app.route("/download-csv")
+def download_csv():
+    file_path = "/home/ajai-krishna/work/Phenocam_d3/static/images/APU_pos_01_2026_01_21_11_01_50.csv"
+    return send_file(file_path, as_attachment=True)
 
 @app.route('/gallery')
 def gallery():
@@ -96,6 +100,6 @@ def serve_image(filename):
 
 if __name__ == '__main__':
     print(f" Image folder: {image_folder}")
-    print(f"Starting Flask server on http://localhost:5001")
-    print(f"Access dashboard at: http://localhost:5001")
-    app.run(debug=True, port=5001, host='0.0.0.0')
+    print(f"Starting Flask server on http://localhost:5002")
+    print(f"Access dashboard at: http://localhost:5002")
+    app.run(debug=True, port=5002, host='0.0.0.0')
