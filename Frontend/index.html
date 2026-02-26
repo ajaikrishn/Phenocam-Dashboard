@@ -11,8 +11,9 @@
   <nav>
     <a href="#" onclick="showPage('home', event)" class="nav-link active">Home</a>
     <a href="#" onclick="showPage('data', event)" class="nav-link">Data & Visualizations</a>
-    <a href="#" onclick="showPage('gallery', event)" class="nav-link">Gallery</a>
     <a href="#" onclick="showPage('about', event)" class="nav-link">About</a>
+    <a href="#" onclick="showPage('gallery', event)" class="nav-link">Gallery</a>
+    
   </nav>
 
   <div id="home" class="page active">
@@ -71,12 +72,17 @@
             <path d="M18 17l-3-3-3 3-3-3-3 3"/>
           </svg>
           Vegetation Index Trends
+          
+
         </h3>
+        
         <div class="controls">
+          
+
           <!-- <button class="btn" onclick="generateSampleData()">📊 Generate Sample Data</button>
           <button class="btn" onclick="updateChart()">🔄 Refresh</button> -->
         </div>
-        <div id="chart"></div>
+        <div id="chart">load_ndviPng()</div>
       </div>
     </div>
   </div>
