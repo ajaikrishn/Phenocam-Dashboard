@@ -10,8 +10,8 @@
 <body>
   <nav>
     <a href="#" onclick="showPage('home', event)" class="nav-link active">Home</a>
-    <a href="#" onclick="showPage('data', event)" class="nav-link">Data & Visualizations</a>
     <a href="#" onclick="showPage('about', event)" class="nav-link">About</a>
+    <a href="#" onclick="showPage('data', event)" class="nav-link">Data & Visualizations</a>
     <a href="#" onclick="showPage('gallery', event)" class="nav-link">Gallery</a>
     
   </nav>
@@ -34,11 +34,11 @@
         </h3>
         <div class="stats-grid">
           <div class="stat-item">
-            <span class="stat-value" id="ndvi-value">0.721</span>
+            <span class="stat-value" id="ndvi-value">0.000</span>
             <span class="stat-label">NDVI Estimate</span>
           </div>
           <div class="stat-item">
-            <span class="stat-value" id="brightness-value">142</span>
+            <span class="stat-value" id="brightness-value">0</span>
             <span class="stat-label">Average Brightness</span>
           </div>
         </div>
@@ -54,13 +54,14 @@
           Latest Phenocam Image
         </h3>
         <div class="image-container">
-          <img id="phenocam-img" src="" alt="Phenocam" style="display:none;">
-          <div class="image-info" style="display:none;">
-            <strong>Captured:</strong> <span id="image-date">Loading...</span><br>
-            <strong>Location:</strong> <span id="image-station">Loading...</span>
+          <img id="phenocam-img" src="" alt="Phenocam" style="display:none; width:100%; height:100%; object-fit:cover; min-height:300px;">
+          <div class="image-info">
+            <strong>Captured:</strong> <span id="image-date">--</span><br>
+            <strong>Location:</strong> <span id="image-station">--</span>
+
           </div>
           <div id="no-image" style="padding:20px; text-align:center; color:#666;">
-            ⏳ Loading latest image...
+            <div id="no-image" style="display:block; padding:20px; text-align:center; color:#666;">⏳ Loading image...</div>
           </div>
         </div>
       </div>
@@ -72,17 +73,12 @@
             <path d="M18 17l-3-3-3 3-3-3-3 3"/>
           </svg>
           Vegetation Index Trends
-          
-
         </h3>
-        
         <div class="controls">
-          
-
           <!-- <button class="btn" onclick="generateSampleData()">📊 Generate Sample Data</button>
           <button class="btn" onclick="updateChart()">🔄 Refresh</button> -->
         </div>
-        <div id="chart">load_ndviPng()</div>
+        <div id="chart"></div>
       </div>
     </div>
   </div>
@@ -136,14 +132,9 @@
           </ul>
 
           <h4>🔬 Applications</h4>
-          <ul>
-            <li>Climate change research and impact assessment</li>
-            <li>Agricultural monitoring and crop phenology</li>
-            <li>Forest management and conservation</li>
-            <li>Ecological research and biodiversity studies</li>
-            <li>Validation of satellite remote sensing data</li>
-            <li>Educational outreach and citizen science</li>
-          </ul>
+          <p>
+            Near-surface remote sensing–derived NDVI time series are widely used for monitoring vegetation growth and health at fine temporal scales. These data support the assessment of crop development, detection of stress conditions such as drought or disease, and evaluation of land management practices. NDVI time-series analysis also aids in identifying phenological transitions, including green-up, peak growth, and senescence phases. In ecological studies, it provides insights into ecosystem productivity, vegetation responses to climatic variability, and long-term environmental change. Due to its high temporal resolution and site-specific accuracy, near-surface NDVI is especially valuable for validating satellite-based observations and improving vegetation and carbon-cycle models.
+          </p>
 
           <h4>💡 How It Works</h4>
           <p>
@@ -215,13 +206,13 @@
           <h4>Raw Data Table</h4>
           <div class="table-controls">
             <input type="text" id="search-input" placeholder="Search by date..." class="search-input">
-            <select id="season-filter" class="filter-select">
+            <!-- <select id="season-filter" class="filter-select">
               <option value="all">All Seasons</option>
               <option value="Summer (Grishma)">Summer (Grishma)</option>
               <option value="Monsoon (Varsha)">Monsoon (Varsha)</option>
               <option value="Autumn (Sharad)">Autumn (Sharad)</option>
               <option value="Winter (Hemanta)">Winter (Hemanta)</option>
-            </select>
+            </select> -->
           </div>
           <div id="data-table" class="data-table-container"></div>
         </div>

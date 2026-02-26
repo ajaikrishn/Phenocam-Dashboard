@@ -79,15 +79,34 @@ def latest():
     except Exception as e:
         print(f" Error in /latest endpoint: {e}")
         return jsonify({})
+
 @app.route("/Plots/ndvi_plot.json")
 def ndvi():
-    return send_file("../Plots/ndvi_plot.json",
-                     mimetype="application/json")
+    return send_file("./Plots/ndvi_plot.json")
+
 @app.route("/Plots/ndvi_plot.png")  
 def ndvi_png():
-    return send_file("../Plots/ndvi_plot.png",
+    return send_file("/Plots/ndvi_plot.png",
                      mimetype="image/png")
-
+@app.route("/metrics/timeseries")
+def timeseries():
+    import json
+    # Changed from .png to .json
+    with open("/home/ajai-krishna/work/Phenocam_d3/Plots/ndvi_plot.json") as f:
+        raw_data = json.load(f)
+    
+    # Transform the data to the expected format
+    timeseries_data = []
+    if 'x' in raw_data and 'y' in raw_data:
+        for i in range(len(raw_data['x'])):
+            # Convert date format from "2024_01_15" to "2024-01-15"
+            date_str = raw_data['x'][i].replace('_', '-')
+            timeseries_data.append({
+                'date': date_str,
+                'ndvi': raw_data['y'][i]
+            })
+    
+    return jsonify(timeseries_data)
     
     
 
