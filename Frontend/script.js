@@ -37,45 +37,34 @@ function showPage(pageName, event) {
 // FETCH DATA FROM BACKEND
 // ============================================
 
-async function fetchLatestMetrics() {
-  try {
-    const response = await fetch(`${API_BASE_URL}/metrics/latest`);
-    const data = await response.json();
-    
-    // Update metrics display
-    document.getElementById('ndvi-value').textContent = data.ndvi ? data.ndvi.toFixed(3) : '0.000';
-    document.getElementById('brightness-value').textContent = data.brightness ? Math.round(data.brightness) : '0';
-    
-    console.log('✅ Metrics loaded:', data);
-  } catch (error) {
-    console.error('❌ Error fetching metrics:', error);
-  }
-}
-
 async function fetchTimeSeriesData() {
   try {
-    const response = await fetch(`${API_BASE_URL}/metrics/timeseries`);
-    const data = await response.json();
-    
-    if (data.length === 0) {
-      document.getElementById('chart').innerHTML = '<div class="loading">📊 No data yet. Upload images to see trends!</div>';
+    const data = await d3.json(`${API_BASE_URL}/metrics/timeseries`);
+
+    if (!data || data.length === 0) {
+      document.getElementById('chart').innerHTML =
+        '<div class="loading">📊 No data yet. Upload images to see trends!</div>';
       return;
     }
-    
+
     // Convert to chart format
     chartData = data.map(item => ({
       date: new Date(item.date),
-      gcc: item.gcc,
-      ndvi: item.ndvi
+      ndvi: +item.ndvi
     }));
-    
+
     updateChart();
+    updateMetricsFromData();
+
     console.log('✅ Time series loaded:', chartData.length, 'data points');
+
   } catch (error) {
     console.error('❌ Error fetching time series:', error);
-    document.getElementById('chart').innerHTML = '<div class="loading">❌ Error loading data. Make sure Flask backend is running!</div>';
+    document.getElementById('chart').innerHTML =
+      '<div class="loading">❌ Error loading data. Make sure Flask backend is running!</div>';
   }
 }
+
 
 async function fetchLatestImage() {
   try {
@@ -152,9 +141,9 @@ function parseFilename(filename) {
     // Determine season based on month (Indian seasons)
     const monthNum = parseInt(month);
     let season = 'Unknown';
-    if (monthNum >= 3 && monthNum <= 5) season = 'Summer (Grishma)';      // March-May: Hot & Dry
-    else if (monthNum >= 6 && monthNum <= 9) season = 'Monsoon (Varsha)'; // June-Sept: Rainy
-    else if (monthNum >= 10 && monthNum <= 11) season = 'Autumn (Sharad)'; // Oct-Nov: Post-monsoon
+    if (monthNum >= 3 && monthNum <= 5) season = '';      // March-May: Hot & Dry
+    else if (monthNum >= 6 && monthNum <= 9) season = ''; // June-Sept: Rainy
+    else if (monthNum >= 10 && monthNum <= 11) season = ''; // Oct-Nov: Post-monsoon
     else season = 'Winter (Hemanta)';                                      // Dec-Feb: Cool & Dry
     
     return {
@@ -315,7 +304,6 @@ window.onclick = function(event) {
 // ============================================
 // CHART FUNCTIONS
 // ============================================
-
 function updateChart() {
   if (chartData.length === 0) {
     document.getElementById('chart').innerHTML = '<div class="loading">📊 Loading data from backend...</div>';
@@ -479,39 +467,35 @@ function updateChart() {
 }
 
 // ============================================
-// GENERATE SAMPLE DATA (For Testing)
+// UPDATE KEY METRICS FROM CHART DATA
 // ============================================
 
-function generateSampleData() {
-  const startDate = new Date('2025-01-01');
-  chartData = [];
-  
-  for (let i = 0; i < 200; i++) {
-    const date = new Date(startDate);
-    date.setDate(date.getDate() + i);
-    
-    const baseValue = 0.35;
-    const seasonal = 0.15 * Math.sin((i / 200) * Math.PI * 2);
-    const noise = (Math.random() - 0.5) * 0.02;
-    
-    chartData.push({
-      date: date,
-      gcc: baseValue + seasonal + noise,
-      ndvi: (baseValue + seasonal + noise) * 1.5
-    });
+function updateMetricsFromData() {
+  if (chartData.length === 0) {
+    document.getElementById('ndvi-value').textContent = '0.000';
+    document.getElementById('brightness-value').textContent = '0';
+    return;
   }
   
-  updateChart();
-  updateSampleMetrics();
-  console.log('✅ Sample data generated');
-}
-
-function updateSampleMetrics() {
-  if (chartData.length === 0) return;
-  
+  // Get the latest NDVI value
   const latest = chartData[chartData.length - 1];
   document.getElementById('ndvi-value').textContent = latest.ndvi.toFixed(3);
-  document.getElementById('brightness-value').textContent = Math.floor(100 + Math.random() * 100);
+  
+  // Calculate average NDVI
+  const avgNDVI = chartData.reduce((sum, d) => sum + d.ndvi, 0) / chartData.length;
+  
+  // Estimate brightness based on NDVI (rough approximation)
+  // Higher NDVI = more vegetation = typically higher brightness in green channel
+  const estimatedBrightness = Math.round(127 + (avgNDVI * 100));
+  document.getElementById('brightness-value').textContent = Math.max(0, Math.min(255, estimatedBrightness));
+  
+  console.log(`✅ Metrics updated - Latest NDVI: ${latest.ndvi.toFixed(3)}, Avg NDVI: ${avgNDVI.toFixed(3)}, Brightness: ${estimatedBrightness}`);
+}
+// ============================================
+//Export chart data as CSV
+// ============================================
+function exportChartData() {
+    window.location.href = "/download-csv";
 }
 
 // ============================================
@@ -525,7 +509,7 @@ async function loadAllData() {
   try {
     // Try to fetch metrics, but don't fail if endpoints don't exist
     try {
-      await fetchLatestMetrics();
+      await LatestMetfetchrics();
     } catch (e) {
       console.log('ℹ️ Metrics endpoint not available');
     }
