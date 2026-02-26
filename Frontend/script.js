@@ -2,7 +2,7 @@
 const API_BASE_URL = 'http://localhost:5002';  // Changed to match your Flask port
 
 let chartData = [];
-const margin = {top: 20, right: 30, bottom: 50, left: 60};
+const margin = { top: 20, right: 30, bottom: 50, left: 60 };
 
 // ============================================
 // PAGE NAVIGATION
@@ -10,20 +10,20 @@ const margin = {top: 20, right: 30, bottom: 50, left: 60};
 
 function showPage(pageName, event) {
   event.preventDefault();
-  
+
   // Hide all pages
   document.querySelectorAll('.page').forEach(page => {
     page.classList.remove('active');
   });
-  
+
   // Remove active class from all nav links
   document.querySelectorAll('.nav-link').forEach(link => {
     link.classList.remove('active');
   });
-  
+
   // Show selected page
   document.getElementById(pageName).classList.add('active');
-  
+
   // Add active class to clicked link
   event.target.classList.add('active');
 
@@ -71,25 +71,25 @@ async function fetchLatestImage() {
     // Use the dedicated /latest endpoint
     const response = await fetch(`${API_BASE_URL}/latest`);
     const data = await response.json();
-    
+
     if (data && data.path && data.filename) {
       const imgElement = document.getElementById('phenocam-img');
       const noImageElement = document.getElementById('no-image');
       const imageInfo = document.querySelector('.image-info');
-      
+
       // Parse filename to get metadata
       const metadata = parseFilename(data.filename);
-      
+
       // Show image with full URL
       imgElement.src = `${API_BASE_URL}${data.path}`;
       imgElement.style.display = 'block';
       if (noImageElement) noImageElement.style.display = 'none';
       if (imageInfo) imageInfo.style.display = 'block';
-      
+
       // Update image info with parsed metadata
       document.getElementById('image-date').textContent = metadata.datetime;
       document.getElementById('image-station').textContent = metadata.location;
-      
+
       console.log('✅ Latest image loaded:', data.filename);
       console.log('📅 Captured at:', metadata.datetime);
       console.log('📍 Location:', metadata.location);
@@ -123,10 +123,10 @@ async function fetchLatestImage() {
 function parseFilename(filename) {
   // Extract just the filename from the full path
   const name = filename.split('/').pop();
-  
+
   // Expected format: APU_pos_01_2025_07_28_13_38_47_color.jpg
   const parts = name.replace(/\.(jpg|jpeg|png|gif)$/i, '').split('_');
-  
+
   if (parts.length >= 8) {
     const year = parts[3];
     const month = parts[4];
@@ -134,10 +134,10 @@ function parseFilename(filename) {
     const hour = parts[6] || '00';
     const minute = parts[7] || '00';
     const second = parts[8] || '00';
-    
+
     const date = `${year}-${month}-${day}`;
     const time = `${hour}:${minute}:${second}`;
-    
+
     // Determine season based on month (Indian seasons)
     const monthNum = parseInt(month);
     let season = 'Unknown';
@@ -145,7 +145,7 @@ function parseFilename(filename) {
     else if (monthNum >= 6 && monthNum <= 9) season = ''; // June-Sept: Rainy
     else if (monthNum >= 10 && monthNum <= 11) season = ''; // Oct-Nov: Post-monsoon
     else season = 'Winter (Hemanta)';                                      // Dec-Feb: Cool & Dry
-    
+
     return {
       date: date,
       time: time,
@@ -154,7 +154,7 @@ function parseFilename(filename) {
       location: 'APU Position 01'
     };
   }
-  
+
   return {
     date: 'Unknown',
     time: 'Unknown',
@@ -166,17 +166,17 @@ function parseFilename(filename) {
 
 function loadGalleryWithD3() {
   const galleryGrid = d3.select('#gallery-grid');
-  
+
   // Show loading message
   galleryGrid.html('<div style="text-align: center; padding: 40px; color: #666;">⏳ Loading images with D3.js...</div>');
-  
+
   console.log('📡 D3 fetching gallery from:', `${API_BASE_URL}/gallery`);
-  
+
   // Use D3 to fetch JSON data
   d3.json(`${API_BASE_URL}/gallery`)
     .then(imagePaths => {
       console.log('✅ D3 received images:', imagePaths);
-      
+
       if (!imagePaths || imagePaths.length === 0) {
         galleryGrid.html('<div style="text-align: center; padding: 40px; color: #666;">📷 No images found in the Phenocam folder.</div>');
         return;
@@ -209,7 +209,7 @@ function loadGalleryWithD3() {
         .enter()
         .append('div')
         .attr('class', 'gallery-item')
-        .on('click', function(event, d) {
+        .on('click', function (event, d) {
           openImageModal(d.src, d.datetime, d.location);
         });
 
@@ -218,7 +218,7 @@ function loadGalleryWithD3() {
         .append('img')
         .attr('src', d => d.src)
         .attr('alt', d => d.filename)
-        .on('error', function() {
+        .on('error', function () {
           d3.select(this).attr('src', 'https://via.placeholder.com/250x200/4CAF50/ffffff?text=Image+Not+Found');
         });
 
@@ -276,12 +276,12 @@ function openImageModal(src, datetime, location) {
     `;
     document.body.appendChild(modal);
   }
-  
+
   // Set modal content
   document.getElementById('modalImage').src = src;
   document.getElementById('modalDateTime').textContent = `Captured: ${datetime}`;
   document.getElementById('modalLocation').textContent = `Location: ${location}`;
-  
+
   // Show modal
   modal.style.display = 'block';
 }
@@ -294,7 +294,7 @@ function closeImageModal() {
 }
 
 // Close modal when clicking outside
-window.onclick = function(event) {
+window.onclick = function (event) {
   const modal = document.getElementById('imageModal');
   if (event.target == modal) {
     modal.style.display = 'none';
@@ -312,7 +312,7 @@ function updateChart() {
 
   const chartDiv = document.getElementById('chart');
   chartDiv.innerHTML = '';
-  
+
   const width = chartDiv.clientWidth - margin.left - margin.right;
   const height = 400 - margin.top - margin.bottom;
 
@@ -401,12 +401,12 @@ function updateChart() {
     .attr('stroke', 'white')
     .attr('stroke-width', 2)
     .style('cursor', 'pointer')
-    .on('mouseover', function(event, d) {
+    .on('mouseover', function (event, d) {
       d3.select(this)
         .transition()
         .duration(200)
         .attr('r', 6);
-      
+
       d3.select('body')
         .append('div')
         .attr('class', 'chart-tooltip')
@@ -418,12 +418,12 @@ function updateChart() {
         .style('left', (event.pageX + 10) + 'px')
         .style('top', (event.pageY - 30) + 'px');
     })
-    .on('mouseout', function() {
+    .on('mouseout', function () {
       d3.select(this)
         .transition()
         .duration(200)
         .attr('r', 4);
-      
+
       d3.selectAll('.chart-tooltip').remove();
     });
 
@@ -476,26 +476,26 @@ function updateMetricsFromData() {
     document.getElementById('brightness-value').textContent = '0';
     return;
   }
-  
+
   // Get the latest NDVI value
   const latest = chartData[chartData.length - 1];
   document.getElementById('ndvi-value').textContent = latest.ndvi.toFixed(3);
-  
+
   // Calculate average NDVI
   const avgNDVI = chartData.reduce((sum, d) => sum + d.ndvi, 0) / chartData.length;
-  
+
   // Estimate brightness based on NDVI (rough approximation)
   // Higher NDVI = more vegetation = typically higher brightness in green channel
   const estimatedBrightness = Math.round(127 + (avgNDVI * 100));
   document.getElementById('brightness-value').textContent = Math.max(0, Math.min(255, estimatedBrightness));
-  
+
   console.log(`✅ Metrics updated - Latest NDVI: ${latest.ndvi.toFixed(3)}, Avg NDVI: ${avgNDVI.toFixed(3)}, Brightness: ${estimatedBrightness}`);
 }
 // ============================================
 //Export chart data as CSV
 // ============================================
 function exportChartData() {
-    window.location.href = "/download-csv";
+  window.location.href = "/download-csv";
 }
 
 // ============================================
@@ -505,7 +505,7 @@ function exportChartData() {
 async function loadAllData() {
   console.log('📡 Loading data from Flask backend at:', API_BASE_URL);
   document.getElementById('chart').innerHTML = '<div class="loading">⏳ Loading from backend...</div>';
-  
+
   try {
     // Try to fetch metrics, but don't fail if endpoints don't exist
     try {
@@ -513,20 +513,20 @@ async function loadAllData() {
     } catch (e) {
       console.log('ℹ️ Metrics endpoint not available');
     }
-    
+
     try {
       await fetchTimeSeriesData();
     } catch (e) {
       console.log('ℹ️ Time series endpoint not available, generating sample data');
       generateSampleData();
     }
-    
+
     try {
       await fetchLatestImage();
     } catch (e) {
       console.log('ℹ️ Images endpoint not available');
     }
-    
+
     console.log('✅ Data loading complete!');
   } catch (error) {
     console.error('❌ Error loading data:', error);
@@ -548,7 +548,7 @@ window.addEventListener('resize', () => {
 document.addEventListener('DOMContentLoaded', () => {
   console.log('🌿 Phenocam Dashboard Initialized');
   console.log('🔌 Backend URL:', API_BASE_URL);
-  
+
   // Load initial data
   loadAllData();
 });

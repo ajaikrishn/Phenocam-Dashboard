@@ -23,7 +23,7 @@ def index():
 
 @app.route("/download-csv")
 def download_csv():
-    file_path = "/home/ajai-krishna/work/Phenocam_d3/static/images/APU_pos_01_2026_01_21_11_01_50.csv"
+    file_path = "/home/ajai-krishna/work/Phenocam_d3/ndvi/"
     return send_file(file_path, as_attachment=True)
 
 @app.route('/gallery')
