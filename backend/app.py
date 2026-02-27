@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify, render_template, send_from_directory,send_file
+from flask import Flask, jsonify, render_template, send_from_directory,send_file,request
 from flask_cors import CORS
 import json
 
@@ -8,6 +8,8 @@ image_folder = '/home/ajai-krishna/work/Phenocam_d3/Phenocamdata_local'
 
 CSV_LIST_DIR = "/home/ajai-krishna/work/Phenocam_d3/csv_lists"
 NDVI_DATA_DIR = "/home/ajai-krishna/work/Phenocam_d3/ndvi"
+DATE_JSON = "/home/ajai-krishna/work/Phenocam_d3/csv_lists/ndvi_file_list.json"
+PATH_JSON = "/home/ajai-krishna/work/Phenocam_d3/csv_lists/ndvi_file_paths.json"
 
 app = Flask(
     __name__,
@@ -36,9 +38,37 @@ def get_csv_list():
         return jsonify([])
 
 
+
 @app.route("/download-csv")
 def download_csv():
-    file_path = "/home/ajai-krishna/work/Phenocam_d3/ndvi/"
+    selected_date = request.args.get("date")
+
+    if not selected_date:
+        return "No date selected", 400
+
+    # Load both JSON files
+    with open(DATE_JSON) as f:
+        date_list = json.load(f)
+
+    with open(PATH_JSON) as f:
+        path_list = json.load(f)
+
+    # Find index of selected date
+    index = None
+    for i, item in enumerate(date_list):
+        if item["date"] == selected_date:
+            index = i
+            break
+
+    if index is None:
+        return "Date not found", 404
+
+    # Get corresponding file path
+    file_path = path_list[index]["file_path"]
+
+    if not os.path.exists(file_path):
+        return "File not found on server", 404
+
     return send_file(file_path, as_attachment=True)
 
 @app.route('/gallery')
