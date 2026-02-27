@@ -139,18 +139,23 @@ function parseFilename(filename) {
     const time = `${hour}:${minute}:${second}`;
 
     // Determine season based on month (Indian seasons)
-    const monthNum = parseInt(month);
-    let season = 'Unknown';
-    if (monthNum >= 3 && monthNum <= 5) season = '';      // March-May: Hot & Dry
-    else if (monthNum >= 6 && monthNum <= 9) season = ''; // June-Sept: Rainy
-    else if (monthNum >= 10 && monthNum <= 11) season = ''; // Oct-Nov: Post-monsoon
-    else season = 'Winter (Hemanta)';                                      // Dec-Feb: Cool & Dry
+    let bandType = 'Color View'; // Default
+    
+    if (name.toLowerCase().includes('_ndvi')) {
+      bandType = 'NDVI View';
+    } else if (name.toLowerCase().includes('_ir') || name.toLowerCase().includes('_nir')) {
+      bandType = 'IR View';
+    } else if (name.toLowerCase().includes('_color')) {
+      bandType = 'Color View';
+    } else if (name.toLowerCase().includes('_rgb')) {
+      bandType = 'RGB View';
+    }
 
     return {
       date: date,
       time: time,
       datetime: `${date} ${time}`,
-      season: season,
+      band: bandType,
       location: 'APU Position 01'
     };
   }
@@ -159,7 +164,7 @@ function parseFilename(filename) {
     date: 'Unknown',
     time: 'Unknown',
     datetime: 'Unknown',
-    season: 'Unknown',
+    band: 'Unknown',
     location: 'APU Position 01'
   };
 }
@@ -230,7 +235,7 @@ function loadGalleryWithD3() {
       // Add season title
       infoDiv
         .append('h4')
-        .text(d => `${d.season} View`);
+        .text(d => d.band);
 
       // Add metadata
       infoDiv

@@ -3,7 +3,7 @@ from flask import Flask, jsonify, render_template, send_from_directory,send_file
 from flask_cors import CORS
 
 # Absolute path to folder containing images
-image_folder = '/home/ajai-krishna/work/Phenocam_d3/Phenocamdata'
+image_folder = '/home/ajai-krishna/work/Phenocam_d3/Phenocamdata_local'
 
 app = Flask(
     __name__,
@@ -40,7 +40,7 @@ def gallery():
         
         # Filter for image files
         images = [
-            f'/Phenocamdata/{f}' for f in files
+            f'/Phenocamdata_local/{f}' for f in files
             if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))
         ]
         
@@ -74,7 +74,7 @@ def latest():
         # Assume filenames sort lexicographically by datetime when formatted consistently
         files.sort(reverse=True)
         latest_file = files[0]
-        latest_path = f'/Phenocamdata/{latest_file}'
+        latest_path = f'/Phenocamdata_local/{latest_file}'
         return jsonify({'path': latest_path, 'filename': latest_file})
     except Exception as e:
         print(f" Error in /latest endpoint: {e}")
@@ -112,7 +112,7 @@ def timeseries():
 
 
 # Serve images from the Phenocamdata folder
-@app.route('/Phenocamdata/<path:filename>')
+@app.route('/Phenocamdata_local/<path:filename>')
 def serve_image(filename):
     print(f"Serving image: {filename}")
     return send_from_directory(image_folder, filename)
