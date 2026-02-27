@@ -524,6 +524,24 @@ function exportChartData() {
 
     window.location.href = `/download-csv?date=${selectedDate}`;
 }
+//Grid plot visualization
+function loadGridPNG() {
+
+  const container = document.getElementById("data-chart");
+  container.innerHTML = ""; // clear previous content
+
+  const img = document.createElement("img");
+  img.src = `${API_BASE_URL}/Plots/grid_ndvi_plot.png`;
+  img.style.width = "100%";
+  img.style.maxWidth = "600px";
+  img.style.display = "block";
+
+  container.appendChild(img);
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  loadGridPNG();
+});
 
 // window.onload = loadFileList;
 // // ============================================

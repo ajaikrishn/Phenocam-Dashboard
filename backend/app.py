@@ -5,6 +5,8 @@ import json
 
 # Absolute path to folder containing images
 image_folder = '/home/ajai-krishna/work/Phenocam_d3/Phenocamdata_local'
+grid_plot_path = '/home/ajai-krishna/work/Phenocam_d3/Plots/grid_plot_ndvi.json'
+grid_plot_path_png = '/home/ajai-krishna/work/Phenocam_d3/Plots/grid_plot_ndvi.png'
 
 CSV_LIST_DIR = "/home/ajai-krishna/work/Phenocam_d3/csv_lists"
 NDVI_DATA_DIR = "/home/ajai-krishna/work/Phenocam_d3/ndvi"
@@ -36,8 +38,13 @@ def get_csv_list():
     except Exception as e:
         print(f"Error loading CSV list: {e}")
         return jsonify([])
+@app.route('/Plots/grid_ndvi_plot.png')
+def get_grid_plot_png():
+    return send_file(grid_plot_path_png, mimetype='image/png')
 
-
+@app.route('/Plots/grid_plot_ndvi.png')
+def get_grid_plot():
+    return send_file(grid_plot_path, mimetype='application/json')
 
 @app.route("/download-csv")
 def download_csv():
