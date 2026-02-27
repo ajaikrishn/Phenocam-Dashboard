@@ -185,9 +185,13 @@
         <div class="visualization-section">
           <h4>Vegetation Index Time Series</h4>
           <div class="controls">
-            <!-- <button class="btn" onclick="loadTimeSeriesData()">📊 Load Data</button>
-            <button class="btn" onclick="generateSampleData()">🔄 Generate Sample</button> -->
-            <button class="btn" onclick="exportChartData()">💾 Export CSV</button>
+
+            <select id="fileDropdown" class="btn">
+    <option value="">-- Select Date --</option>
+</select>
+
+<button class="btn" onclick="exportChartData()">💾 Export CSV</button>
+
           </div>
           <div id="data-chart"></div>
         </div>

@@ -496,12 +496,42 @@ function updateMetricsFromData() {
 
   console.log(`✅ Metrics updated - Latest NDVI: ${latest.ndvi.toFixed(3)}, Avg NDVI: ${avgNDVI.toFixed(3)}, Brightness: ${estimatedBrightness}`);
 }
-// ============================================
-//Export chart data as CSV
-// ============================================
+
+document.addEventListener("DOMContentLoaded", function () {
+    fetch("/csv_lists/ndvi_file_list.json")
+        .then(response => response.json())
+        .then(data => {
+            const dropdown = document.getElementById("fileDropdown");
+
+            data.forEach(item => {
+                const option = document.createElement("option");
+                option.value = item.date;        // store date
+                option.textContent = item.date;  // show date
+                dropdown.appendChild(option);
+            });
+        })
+        .catch(error => console.error("Error loading JSON:", error));
+});
+
+
 function exportChartData() {
-  window.location.href = "/download-csv";
+    const selectedDate = document.getElementById("fileDropdown").value;
+
+    if (!selectedDate) {
+        alert("Please select a date first.");
+        return;
+    }
+
+    window.location.href = `/download-csv?date=${selectedDate}`;
 }
+
+// window.onload = loadFileList;
+// // ============================================
+// //Export chart data as CSV
+// // ============================================
+// function exportChartData() {
+//   window.location.href = "/download-csv";
+// }
 
 // ============================================
 // LOAD ALL DATA FROM BACKEND

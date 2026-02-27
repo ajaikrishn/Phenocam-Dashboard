@@ -1,9 +1,13 @@
 import os
 from flask import Flask, jsonify, render_template, send_from_directory,send_file
 from flask_cors import CORS
+import json
 
 # Absolute path to folder containing images
 image_folder = '/home/ajai-krishna/work/Phenocam_d3/Phenocamdata_local'
+
+CSV_LIST_DIR = "/home/ajai-krishna/work/Phenocam_d3/csv_lists"
+NDVI_DATA_DIR = "/home/ajai-krishna/work/Phenocam_d3/ndvi"
 
 app = Flask(
     __name__,
@@ -19,6 +23,17 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 def index():
     return render_template('index.html')
 
+@app.route('/csv_lists/ndvi_file_list.json')
+def get_csv_list():
+    import json
+    file_path = '/home/ajai-krishna/work/Phenocam_d3/csv_lists/ndvi_file_list.json'
+    try:
+        with open(file_path, 'r') as f:
+            data = json.load(f)
+        return jsonify(data)
+    except Exception as e:
+        print(f"Error loading CSV list: {e}")
+        return jsonify([])
 
 
 @app.route("/download-csv")
