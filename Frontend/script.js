@@ -7,29 +7,32 @@ const margin = { top: 20, right: 30, bottom: 50, left: 60 };
 // ============================================
 // PAGE NAVIGATION
 // ============================================
-
 function showPage(pageName, event) {
-  event.preventDefault();
 
-  // Hide all pages
+  if (event) event.preventDefault();
+
   document.querySelectorAll('.page').forEach(page => {
     page.classList.remove('active');
   });
 
-  // Remove active class from all nav links
   document.querySelectorAll('.nav-link').forEach(link => {
     link.classList.remove('active');
   });
 
-  // Show selected page
-  document.getElementById(pageName).classList.add('active');
+  const page = document.getElementById(pageName);
+  if (page) page.classList.add('active');
 
-  // Add active class to clicked link
-  event.target.classList.add('active');
+  if (event && event.target) {
+    event.target.classList.add('active');
+  }
 
-  // Load gallery if switching to gallery page
   if (pageName === 'gallery') {
     loadGalleryWithD3();
+  }
+
+  if (pageName === 'data') {
+    loadGridPNG();
+    fetchGridStatistics();
   }
 }
 
@@ -170,7 +173,16 @@ function parseFilename(filename) {
 }
 
 function loadGalleryWithD3() {
+  console.log('🖼️ loadGalleryWithD3 called');
+  
+
+  // select by ID – previous selector was missing '#', resulting in null selection
   const galleryGrid = d3.select('#gallery-grid');
+
+  if (galleryGrid.empty()) {
+    console.warn('⚠️ Gallery element not found');
+    return;
+  }
 
   // Show loading message
   galleryGrid.html('<div style="text-align: center; padding: 40px; color: #666;">⏳ Loading images with D3.js...</div>');
@@ -187,8 +199,23 @@ function loadGalleryWithD3() {
         return;
       }
 
+      // convert paths to objects temporarily so we can sort by date before limiting
+      const parsedList = imagePaths.map(path => {
+        const m = parseFilename(path);
+        return { path, datetime: m.datetime };
+      });
+
+      // sort by datetime descending (newest first), unknown dates stay at end
+      parsedList.sort((a, b) => {
+        if (a.datetime === 'Unknown' || b.datetime === 'Unknown') return 0;
+        return new Date(b.datetime) - new Date(a.datetime);
+      });
+
+      // limit to first 50 entries after sorting
+      const limitedPaths = parsedList.slice(0, 50).map(item => item.path);
+
       // Parse all images and create data array
-      const images = imagePaths.map((path, index) => {
+      const images = limitedPaths.map((path, index) => {
         const metadata = parseFilename(path);
         return {
           id: index + 1,
@@ -223,6 +250,7 @@ function loadGalleryWithD3() {
         .append('img')
         .attr('src', d => d.src)
         .attr('alt', d => d.filename)
+        .attr('crossorigin', 'anonymous')
         .on('error', function () {
           d3.select(this).attr('src', 'https://via.placeholder.com/250x200/4CAF50/ffffff?text=Image+Not+Found');
         });
@@ -590,7 +618,7 @@ async function loadAllData() {
   try {
     // Try to fetch metrics, but don't fail if endpoints don't exist
     try {
-      await LatestMetfetchrics();
+      await updateMetricsFromData();
     } catch (e) {
       console.log('ℹ️ Metrics endpoint not available');
     }
@@ -620,7 +648,9 @@ async function loadAllData() {
 // ============================================
 
 window.addEventListener('resize', () => {
-  if (chartData.length > 0 && document.getElementById('dashboard').classList.contains('active')) {
+  const dashboardEl = document.getElementById('data'); // or correct ID
+
+  if (chartData.length > 0 && dashboardEl && dashboardEl.classList.contains('active')) {
     updateChart();
   }
 });
