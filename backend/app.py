@@ -7,6 +7,7 @@ import json
 image_folder = '/home/ajai-krishna/work/Phenocam_d3/Phenocamdata_local'
 grid_plot_path = '/home/ajai-krishna/work/Phenocam_d3/Plots/grid_plot_ndvi.json'
 grid_plot_path_png = '/home/ajai-krishna/work/Phenocam_d3/Plots/grid_plot_ndvi.png'
+grid_plot_ndvi_stats_path = '/home/ajai-krishna/work/Phenocam_d3/Plots/grid_plot_ndvi_stats.json'
 
 CSV_LIST_DIR = "/home/ajai-krishna/work/Phenocam_d3/csv_lists"
 NDVI_DATA_DIR = "/home/ajai-krishna/work/Phenocam_d3/ndvi"
@@ -26,6 +27,11 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+@app.route('/Plots/grid_plot_ndvi_stats.json')
+def get_grid_plot_stats():
+    return send_file(grid_plot_ndvi_stats_path, mimetype='application/json')
 
 @app.route('/csv_lists/ndvi_file_list.json')
 def get_csv_list():

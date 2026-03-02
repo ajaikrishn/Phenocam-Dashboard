@@ -758,3 +758,61 @@ body.modal-open {
   color: #fffcfc;
   font-size: 1.1em;
 }
+/* ============================= */
+/* Statistical Summary Styling   */
+/* ============================= */
+
+.visualization-section {
+  margin-top: 30px;
+}
+
+.visualization-section h4 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #667eea;
+}
+
+.stats-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+.stat-card {
+  background: linear-gradient(145deg, #ffffff, #f4f6f9);
+  padding: 20px;
+  border-radius: 14px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  text-align: center;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.stat-label {
+  display: block;
+  font-size: 14px;
+  color: #6c757d;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: #1f77b4;   /* Matches NDVI line color */
+}
+
+/* Optional: Highlight NDVI values in green if high */
+.stat-value.high {
+  color: #2ecc71;
+}
+
+.stat-value.low {
+  color: #e74c3c;
+}

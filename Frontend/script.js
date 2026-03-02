@@ -541,7 +541,35 @@ function loadGridPNG() {
 
 document.addEventListener("DOMContentLoaded", function () {
   loadGridPNG();
+  fetchGridStatistics();
 });
+// Statistical summary
+async function fetchGridStatistics() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/Plots/grid_plot_ndvi_stats.json`);
+    const stats = await response.json();
+
+    if (!stats) {
+      console.warn("No statistics returned");
+      return;
+    }
+
+    // Update Statistical Summary Panel
+    document.getElementById("mean-ndvi").textContent =
+      stats.mean ? Number(stats.mean).toFixed(4) : "--";
+
+    document.getElementById("max-ndvi").textContent =
+      stats.max ? Number(stats.max).toFixed(4) : "--";
+
+    document.getElementById("min-ndvi").textContent =
+      stats.min ? Number(stats.min).toFixed(4) : "--";
+
+    console.log("✅ Grid statistics loaded:", stats);
+
+  } catch (error) {
+    console.error("❌ Error loading grid statistics:", error);
+  }
+}
 
 // window.onload = loadFileList;
 // // ============================================
