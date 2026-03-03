@@ -12,7 +12,8 @@ function showPage(pageName, event) {
   if (event) event.preventDefault();
 
   document.querySelectorAll('.page').forEach(page => {
-    page.classList.remove('active');
+    //page.classList.remove('active');
+    page.style.display = 'none'; // Hide all pages
   });
 
   document.querySelectorAll('.nav-link').forEach(link => {
@@ -20,7 +21,7 @@ function showPage(pageName, event) {
   });
 
   const page = document.getElementById(pageName);
-  if (page) page.classList.add('active');
+  if (page) page.style.display = 'block'; // Show the selected page //page.classList.add('active');
 
   if (event && event.target) {
     event.target.classList.add('active');

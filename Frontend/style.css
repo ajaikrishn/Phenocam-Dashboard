@@ -11,7 +11,7 @@ body {
   min-height: 100vh;
   padding: 0;
   color: #333;
-  alpha: 0.5;
+  /*opacity: 0.75; */
 }
 
 /* Navigation Styles */
@@ -42,14 +42,7 @@ nav a.active {
   background-color: #27ae60;
 }
 
-/* Page Navigation */
-.page {
-  display: none;
-}
 
-.page.active {
-  display: block;
-}
 
 /* Header Styles */
 .header {
@@ -253,6 +246,9 @@ nav a.active {
   margin: 0;
   color: #666;
 }
+#about{
+  display: none;
+}
 
 .about-content h4 {
   color: #2c3e50;
@@ -261,6 +257,7 @@ nav a.active {
   border-bottom: 2px solid #27ae60;
   padding-bottom: 10px;
 }
+
 
 .about-content ul {
   line-height: 1.8;
@@ -277,37 +274,7 @@ nav a.active {
   padding: 40px;
 }
 
-.gallery-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  padding: 8px;
-}
-
-.gallery-item {
-  width: 200px;
-  border-radius: 8px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.gallery-item:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-}
-
-.gallery-image {
-  display: block;
-  width: 100%;
-  height: 140px;
-  object-fit: cover;
-}
-
-.gallery-meta {
-  padding: 10px;
-  background: #fff;
-}
+/* core gallery styles moved to bottom; placeholder stays above */
 
 .gallery-meta .meta-filename {
   font-weight: 600;
@@ -382,7 +349,9 @@ nav a.active {
   gap: 25px;
   padding: 20px 0;
 }
-
+#gallery{
+  display:  none;
+}
 .gallery-item {
   background: white;
   border-radius: 12px;
@@ -420,19 +389,7 @@ nav a.active {
   line-height: 1.6;
 }
 
-/* Full width card for gallery */
-.full-width {
-  grid-column: 1 / -1;
-}
 
-/* Page visibility */
-.page {
-  display: none;
-}
-
-.page.active {
-  display: block;
-}
 
 .modal {
   display: none;
@@ -527,16 +484,6 @@ nav a.active {
 
   to {
     transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
     opacity: 1;
   }
 }
@@ -750,7 +697,9 @@ body.modal-open {
 .data-table tr:last-child td {
   border-bottom: none;
 } */
-
+#data{
+  display: none;
+}
 /* Loading state */
 .loading {
   text-align: center;
