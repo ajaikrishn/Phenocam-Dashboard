@@ -1,23 +1,24 @@
 import os
+from config import *
 from flask import Flask, jsonify, render_template, send_from_directory,send_file,request
 from flask_cors import CORS
 import json
 
 # Absolute path to folder containing images
-image_folder = '/home/ajai-krishna/work/Phenocam_d3/Phenocamdata_local'
-grid_plot_path = '/home/ajai-krishna/work/Phenocam_d3/Plots/grid_plot_ndvi.json'
-grid_plot_path_png = '/home/ajai-krishna/work/Phenocam_d3/Plots/grid_plot_ndvi.png'
-grid_plot_ndvi_stats_path = '/home/ajai-krishna/work/Phenocam_d3/Plots/grid_plot_ndvi_stats.json'
+image_folder = phenocam_dir
+grid_plot_path = os.path.join(BASE_DIR+'Plots/grid_plot_ndvi.json')
+grid_plot_path_png = os.path.join(BASE_DIR+'Plots/grid_plot_ndvi.png')
+grid_plot_ndvi_stats_path = os.path.join(BASE_DIR+'Plots/grid_plot_ndvi_stats.json')
 
-CSV_LIST_DIR = "/home/ajai-krishna/work/Phenocam_d3/csv_lists"
-NDVI_DATA_DIR = "/home/ajai-krishna/work/Phenocam_d3/ndvi"
-DATE_JSON = "/home/ajai-krishna/work/Phenocam_d3/csv_lists/ndvi_file_list.json"
-PATH_JSON = "/home/ajai-krishna/work/Phenocam_d3/csv_lists/ndvi_file_paths.json"
+CSV_LIST_DIR = os.path.join(BASE_DIR+"csv_lists")
+NDVI_DATA_DIR = os.path.join(BASE_DIR+"ndvi")
+DATE_JSON = os.path.join(BASE_DIR+"csv_lists/ndvi_file_list.json")
+PATH_JSON = os.path.join(BASE_DIR+"csv_lists/ndvi_file_paths.json")
 
 app = Flask(
     __name__,
-    template_folder='/home/ajai-krishna/work/Phenocam_d3/Frontend',
-    static_folder='/home/ajai-krishna/work/Phenocam_d3/Frontend',
+    template_folder= os.path.join(BASE_DIR+"Frontend"),
+    static_folder=os.path.join(BASE_DIR+"Frontend"),
     static_url_path=''
 )
 
@@ -36,7 +37,7 @@ def get_grid_plot_stats():
 @app.route('/csv_lists/ndvi_file_list.json')
 def get_csv_list():
     import json
-    file_path = '/home/ajai-krishna/work/Phenocam_d3/csv_lists/ndvi_file_list.json'
+    file_path = os.path.join(BASE_DIR+"/csv_lists/ndvi_file_list.json")
     try:
         with open(file_path, 'r') as f:
             data = json.load(f)
@@ -150,7 +151,7 @@ def ndvi_png():
 def timeseries():
     import json
     # Changed from .png to .json
-    with open("/home/ajai-krishna/work/Phenocam_d3/Plots/ndvi_plot.json") as f:
+    with open("/home/ml_user/script/Phenocam-Dashboard/Plots/ndvi_plot.json") as f:
         raw_data = json.load(f)
     
     # Transform the data to the expected format

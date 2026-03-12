@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = 'http://localhost:5002';  // Changed to match your Flask port
+const API_BASE_URL = 'http://172.16.30.62:5002/';  // Changed to match your Flask port
 
 let chartData = [];
 const margin = { top: 20, right: 30, bottom: 50, left: 60 };

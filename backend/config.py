@@ -1,7 +1,8 @@
 import os
 
-BASE_DIR = "/home/ajai-krishna/work/Phenocam_d3"
-phenocam_dir = '/home/ajai-krishna/work/Phenocam_d3/Phenocamdata_local'
+BASE_DIR = "/home/ml_user/script/Phenocam-Dashboard/"
+phenocam_dir = '/home/ml_user/script/Phenocam-Dashboard/Phenocamdata_local'
+output_ndvi_list_dir = '/home/ml_user/script/Phenocam-Dashboard/csv_lists'
 
 IMAGE_FOLDER = os.path.join(BASE_DIR, "Phenocamdata_local")
 PLOTS_DIR = os.path.join(BASE_DIR, "Plots")
